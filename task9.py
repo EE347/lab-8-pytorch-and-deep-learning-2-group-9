@@ -4,15 +4,28 @@ import time
 from picamera2 import Picamera2
 from torchvision import transforms, models
 from PIL import Image
+import torch.nn as nn
 
-# Define the model architecture (this should match the one you used when saving the model)
-model = models.resnet18(pretrained=False)  # Example with ResNet-18, replace with your model architecture
-# If your model has different layers or structure, make sure to define it here
+# Define the custom model class based on the training architecture.
+class CustomResNet(nn.Module):
+    def __init__(self, num_classes=2):
+        super(CustomResNet, self).__init__()
+        # Use ResNet18 as base model, and replace the classifier layer (fc) with custom classifier
+        self.resnet = models.resnet18(pretrained=False)  # Using ResNet-18 as the base
+        # Modify the final fully connected layer for the number of classes
+        self.resnet.fc = nn.Linear(self.resnet.fc.in_features, num_classes)
+
+    def forward(self, x):
+        return self.resnet(x)
+
+# Initialize the custom model
+model = CustomResNet(num_classes=2)  # Assuming you have 2 classes (Luke and Rory)
 
 # Load the saved state dict into the model
 try:
     model.load_state_dict(torch.load('lab8/best_model_ce.pth'))
     model.eval()  # Set the model to evaluation mode
+    print("Model loaded successfully.")
 except Exception as e:
     print(f"Error loading model: {e}")
     exit()
