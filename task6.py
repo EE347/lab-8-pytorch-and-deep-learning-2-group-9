@@ -7,8 +7,6 @@ from tqdm import tqdm
 from utils.dataset import TeamMateDataset
 from torchvision.models import mobilenet_v3_small
 from torchvision import transforms
-import numpy as np
-from sklearn.metrics import confusion_matrix
 
 if __name__ == '__main__':
 
@@ -116,9 +114,6 @@ if __name__ == '__main__':
         test_loss_ce = 0
         correct_ce = 0
         total_ce = 0
-        all_preds_ce = []
-        all_labels_ce = []
-
         for images, labels in tqdm(testloader, total=len(testloader), leave=False):
             # Move the data to the device (CPU or GPU)
             images = images.reshape(-1, 3, 64, 64).to(device)
@@ -140,17 +135,11 @@ if __name__ == '__main__':
             # Accumulate the number of correct classifications
             correct_ce += (predicted == labels).sum().item()
 
-            # Collect predictions and labels for confusion matrix
-            all_preds_ce.extend(predicted.cpu().numpy())
-            all_labels_ce.extend(labels.cpu().numpy())
-
         # Test the model for Negative Log-Likelihood loss (NLL)
         model.eval()
         test_loss_nll = 0
         correct_nll = 0
         total_nll = 0
-        all_preds_nll = []
-        all_labels_nll = []
         for images, labels in tqdm(testloader, total=len(testloader), leave=False):
             # Move the data to the device (CPU or GPU)
             images = images.reshape(-1, 3, 64, 64).to(device)
@@ -172,58 +161,6 @@ if __name__ == '__main__':
 
             # Accumulate the number of correct classifications
             correct_nll += (predicted == labels).sum().item()
-
-            # Collect predictions and labels for confusion matrix
-            all_preds_nll.extend(predicted.cpu().numpy())
-            all_labels_nll.extend(labels.cpu().numpy())
-
-        # Compute confusion matrix for CE loss
-        cm_ce = confusion_matrix(all_labels_ce, all_preds_ce)
-        cm_nll = confusion_matrix(all_labels_nll, all_preds_nll)
-
-        # Plot and save the confusion matrix for CrossEntropy
-        plt.figure(figsize=(5, 4))
-        plt.imshow(cm_ce, interpolation='nearest', cmap=plt.cm.Blues)
-        plt.title('Confusion Matrix (CE Loss)')
-        plt.colorbar()
-        tick_marks = np.arange(2)
-        plt.xticks(tick_marks, ["Class 0", "Class 1"])
-        plt.yticks(tick_marks, ["Class 0", "Class 1"])
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-
-        # Annotate each cell with the numeric value
-        thresh = cm_ce.max() / 2.
-        for i in range(cm_ce.shape[0]):
-            for j in range(cm_ce.shape[1]):
-                plt.text(j, i, format(cm_ce[i, j], 'd'),
-                         horizontalalignment="center",
-                         color="white" if cm_ce[i, j] > thresh else "black")
-
-        plt.savefig('lab8/confusion_matrix_ce.png')
-        plt.close()  # Close the plot to avoid memory issues over epochs
-
-        # Plot and save the confusion matrix for NLL
-        plt.figure(figsize=(5, 4))
-        plt.imshow(cm_nll, interpolation='nearest', cmap=plt.cm.Blues)
-        plt.title('Confusion Matrix (NLL Loss)')
-        plt.colorbar()
-        tick_marks = np.arange(2)
-        plt.xticks(tick_marks, ["Class 0", "Class 1"])
-        plt.yticks(tick_marks, ["Class 0", "Class 1"])
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-
-        # Annotate each cell with the numeric value
-        thresh = cm_nll.max() / 2.
-        for i in range(cm_nll.shape[0]):
-            for j in range(cm_nll.shape[1]):
-                plt.text(j, i, format(cm_nll[i, j], 'd'),
-                         horizontalalignment="center",
-                         color="white" if cm_nll[i, j] > thresh else "black")
-
-        plt.savefig('lab8/confusion_matrix_nll.png')
-        plt.close()  # Close the plot to avoid memory issues over epochs
 
         # Print the epoch statistics
         print(f'Epoch: {epoch}, '
