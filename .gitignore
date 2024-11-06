@@ -1,2 +1,5 @@
 data/
 utils/
+best_model.pth
+current_model.pth
+task2_loss_plot.png
