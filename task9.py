@@ -28,9 +28,8 @@ face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fronta
 
 # Image transformation for input to the model (assuming model expects 224x224 images)
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((64, 64)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Standard normalization
 ])
 
 # Labels mapping (assuming 0 is "Luke" and 1 is "Rory")
